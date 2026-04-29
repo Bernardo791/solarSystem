@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Solar - Three.js</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- OrbitControls -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+let scene, camera, renderer, controls;
+let solarSystem;
+let useAnimmatedCamera = true;
+
+init();
+animate();
+
+// Inicialização
+function init() {
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    // Luz
+    const light = new THREE.PointLight(0xffffff, 2);
+    scene.add(light);
+
+    // Sistema solar (grupo)
+    solarSystem = new THREE.Object3D();
+    scene.add(solarSystem);
+
+    // Sol
+    const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
+    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    solarSystem.add(sun);
+
+    // Planeta
+    const planetGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+    const planetMaterial = new THREE.MeshStandardMaterial({ color: 0x3399ff });
+    const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+
+    planet.position.x = 3;
+    solarSystem.add(planet);
+
+    // Atualização animada
+    solarSystem.userData.update = function(time) {
+        planet.position.x = Math.cos(time) * 3;
+        planet.position.z = Math.sin(time) * 3;
+    };
+
+    camera.position.z = 5;
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+// Responsividade
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// Sua função animate adaptada
+const cameraDistance = 5;
+
+function animate(t = 0) {
+    const time = t * 0.0002;
+
+    requestAnimationFrame(animate);
+
+    solarSystem.userData.update(time);
+    renderer.render(scene, camera);
+
+    if (useAnimmatedCamera) {
+        camera.position.x = Math.cos(time * 0.75) * cameraDistance;
+        camera.position.y = Math.cos(time * 0.75);
+        camera.position.z = Math.sin(time * 0.75) * cameraDistance;
+        camera.lookAt(0, 0, 0);
+    } else {
+        controls.update();
+    }
+}
+</script>
+
+</body>
+</html>
